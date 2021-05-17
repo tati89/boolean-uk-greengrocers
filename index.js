@@ -10,6 +10,13 @@ This is how an item object should look like
 
 */
 
+// Deliverables
+// - A user can view a selection of items in the store
+// - From the store, a user can add an item to their cart
+// - From the cart, a user can view and adjust the number of items in their cart
+//     - If an item's quantity equals zero it is removed from the cart
+// - A user can view the current total in their cart
+
 const state = {
   groceries: [
     {
@@ -56,7 +63,7 @@ const state = {
     },
     {
       id: "008-berry",
-      name: "berry",
+      name: "cherry",
       icon: String.raw`assets\icons\008-berry.svg`,
       price: 1.9,
     },
@@ -76,13 +83,17 @@ const state = {
   cart: [],
 };
 const storeUlEl = document.querySelector(".store--item-list");
-/* <ul class="cart--item-list"></ul>; */
 const cartUlEl = document.querySelector(".cart--item-list");
 
 function renderGroceries(state) {
   for (const grocery of state.groceries) {
     const listitemEl = createGroceriItem(grocery);
     storeUlEl.append(listitemEl);
+  }
+  cartUlEl.innerHTML = "";
+  for (const grocery of state.cart) {
+    const cartItemEl = cartItem(grocery);
+    cartUlEl.append(cartItemEl);
   }
 }
 
@@ -99,7 +110,10 @@ function createGroceriItem(grocery) {
   buttonEl.innerText = "Add to cart";
 
   buttonEl.addEventListener("click", function () {
-    state.cart.push(listitemEl);
+    let amount = 1;
+    grocery.amount = amount;
+    state.cart.push(grocery);
+    renderGroceries(state);
   });
 
   storeItemIconEl.append(imgEl);
@@ -108,26 +122,7 @@ function createGroceriItem(grocery) {
   return listitemEl;
 }
 
-function renderCartGroceries(state) {
-  for (const grocery of state.cart) {
-    const cartItemEl = cartItem(grocery);
-    cartUlEl.append(cartItemEl);
-  }
-}
-
 function cartItem(grocery) {
-  // <li>
-  //   <img
-  //     class="cart--item-icon"
-  //     src="assets/icons/001-beetroot.svg"
-  //     alt="beetroot"
-  //   />
-  //   <p>beetroot</p>
-  //   <button class="quantity-btn remove-btn center">-</button>
-  //   <span class="quantity-text center">1</span>
-  //   <button class="quantity-btn add-btn center">+</button>
-  // </li>;
-
   //li
   const cartItemEl = document.createElement("li");
   //img
@@ -141,16 +136,16 @@ function cartItem(grocery) {
   titleEl.innerText = grocery.name;
 
   //quantity btn
-  const quantityBtn = document.createElement("button");
-  quantityBtn.setAttribute("class", "quantity-btn");
-  quantityBtn.classList.add("remove-btn");
-  quantityBtn.classList.add("center");
+  const quantityBtnRemove = document.createElement("button");
+  quantityBtnRemove.setAttribute("class", "quantity-btn");
+  quantityBtnRemove.classList.add("remove-btn");
+  quantityBtnRemove.classList.add("center");
 
   //span
   const spanEl = document.createElement("span");
   spanEl.setAttribute("class", "quantity-text");
   spanEl.classList.add("center");
-  spanEl.innerText = "1";
+  spanEl.innerText = grocery.amount;
 
   //quantity btn right
   const quantityBtnRight = document.createElement("button");
@@ -158,7 +153,21 @@ function cartItem(grocery) {
   quantityBtnRight.classList.add("add-btn");
   quantityBtnRight.classList.add("center");
 
-  cartItemEl.append(cartImg, titleEl, quantityBtn, spanEl, quantityBtnRight);
+  quantityBtnRight.addEventListener("click", function () {
+    spanEl.innerText = grocery.amount += 1;
+  });
+
+  quantityBtnRemove.addEventListener("click", function () {
+    spanEl.innerText = grocery.amount -= 1;
+  });
+
+  cartItemEl.append(
+    cartImg,
+    titleEl,
+    quantityBtnRemove,
+    spanEl,
+    quantityBtnRight
+  );
 
   return cartItemEl;
 }
