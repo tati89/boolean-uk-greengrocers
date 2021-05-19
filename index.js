@@ -20,7 +20,7 @@ This is how an item object should look like
 const state = {
   groceries: [
     {
-      id: 001,
+      id: "001-beetroot",
       name: "beetroot",
       icon: String.raw`assets\icons\001-beetroot.svg`,
       price: 0.35,
@@ -82,38 +82,32 @@ const state = {
   ],
   cart: [],
 };
-const storeUlEl = document.querySelector(".store--item-list");
-const cartUlEl = document.querySelector(".cart--item-list");
+const storeListEl = document.querySelector(".store--item-list");
+const cartListEl = document.querySelector(".cart--item-list");
+let clickedItem = null;
 
-function renderGroceries(state) {
-  for (const grocery of state.groceries) {
-    const listitemEl = createGroceriItem(grocery);
-    storeUlEl.append(listitemEl);
-  }
-  cartUlEl.innerHTML = "";
-  for (const grocery of state.cart) {
-    const cartItemEl = cartItem(grocery);
-    cartUlEl.append(cartItemEl);
+function renderGroceries() {
+  for (const item of state.groceries) {
+    const listitemEl = createGroceriItem(item);
+    storeListEl.append(listitemEl);
   }
 }
 
-function createGroceriItem(grocery) {
+function createGroceriItem(item) {
   const listitemEl = document.createElement("li");
   const storeItemIconEl = document.createElement("div");
   storeItemIconEl.setAttribute("class", "store--item-icon");
 
   const imgEl = document.createElement("img");
-  imgEl.setAttribute("alt", grocery.name);
-  imgEl.src = grocery.icon;
+  imgEl.setAttribute("alt", item.name);
+  imgEl.src = item.icon;
 
   const buttonEl = document.createElement("button");
   buttonEl.innerText = "Add to cart";
 
   buttonEl.addEventListener("click", function () {
-    let amount = 1;
-    grocery.amount = amount;
-    state.cart.push(grocery);
-    renderGroceries(state);
+    addItemToCart(item);
+    renderCartItems();
   });
 
   storeItemIconEl.append(imgEl);
@@ -122,43 +116,74 @@ function createGroceriItem(grocery) {
   return listitemEl;
 }
 
-function cartItem(grocery) {
+function addItemToCart(clickedItem) {
+  let itemIsInCart = false;
+  for (const item of state.cart) {
+    if (item.id === clickedItem.id) {
+      itemIsInCart = true;
+      item.amount += 1;
+    }
+  }
+
+  if (!itemIsInCart) {
+    const cartItem = {
+      id: clickedItem.id,
+      icon: clickedItem.icon,
+      name: clickedItem.name,
+      amount: 1,
+    };
+    state.cart.push(cartItem);
+  }
+}
+
+function cartItem(item) {
   //li
   const cartItemEl = document.createElement("li");
   //img
   const cartImg = document.createElement("img");
   cartImg.setAttribute("class", "cart--item-icon");
-  cartImg.setAttribute("alt", grocery.name);
-  cartImg.src = grocery.icon;
+  cartImg.setAttribute("alt", item.name);
+  cartImg.src = item.icon;
 
   //p
   const titleEl = document.createElement("p");
-  titleEl.innerText = grocery.name;
+  titleEl.innerText = item.name;
 
   //quantity btn
   const quantityBtnRemove = document.createElement("button");
   quantityBtnRemove.setAttribute("class", "quantity-btn");
   quantityBtnRemove.classList.add("remove-btn");
   quantityBtnRemove.classList.add("center");
+  quantityBtnRemove.innerText = "-";
 
   //span
   const spanEl = document.createElement("span");
   spanEl.setAttribute("class", "quantity-text");
   spanEl.classList.add("center");
-  spanEl.innerText = grocery.amount;
+  spanEl.innerText = item.amount;
 
   //quantity btn right
   const quantityBtnRight = document.createElement("button");
   quantityBtnRight.setAttribute("class", "quantity-btn");
   quantityBtnRight.classList.add("add-btn");
   quantityBtnRight.classList.add("center");
+  quantityBtnRight.innerText = "+";
 
   quantityBtnRight.addEventListener("click", function () {
-    spanEl.innerText = grocery.amount += 1;
+    spanEl.innerText = item.amount += 1;
   });
 
   quantityBtnRemove.addEventListener("click", function () {
-    spanEl.innerText = grocery.amount -= 1;
+    if (item.amount < 1) {
+      cartItemEl.remove();
+      let indexOfItem = state.cart.findIndex(function (element) {
+        return element.id === item.id;
+      });
+      state.cart.splice(indexOfItem, 1);
+      renderCartItems();
+    } else {
+      spanEl.innerText = item.amount -= 1;
+    }
   });
 
   cartItemEl.append(
@@ -172,4 +197,13 @@ function cartItem(grocery) {
   return cartItemEl;
 }
 
+function renderCartItems() {
+  cartListEl.innerHTML = "";
+  for (const item of state.cart) {
+    const cartItemEl = cartItem(item);
+    cartListEl.append(cartItemEl);
+  }
+}
+
 renderGroceries(state);
+renderCartItems(state);
