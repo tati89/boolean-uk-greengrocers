@@ -84,7 +84,6 @@ const state = {
 };
 const storeListEl = document.querySelector(".store--item-list");
 const cartListEl = document.querySelector(".cart--item-list");
-let clickedItem = null;
 
 function renderGroceries() {
   for (const item of state.groceries) {
@@ -171,10 +170,11 @@ function cartItem(item) {
 
   quantityBtnRight.addEventListener("click", function () {
     spanEl.innerText = item.amount += 1;
+    renderCartItems();
   });
 
   quantityBtnRemove.addEventListener("click", function () {
-    if (item.amount < 1) {
+    if (item.amount === 1) {
       cartItemEl.remove();
       let indexOfItem = state.cart.findIndex(function (element) {
         return element.id === item.id;
@@ -197,12 +197,27 @@ function cartItem(item) {
   return cartItemEl;
 }
 
+function calculateTotal() {
+  const totalEl = document.querySelector(".total-number");
+  let total = 0;
+  for (const itemFromCArt of state.cart) {
+    const foundItem = state.groceries.find(function (itemFromStore) {
+      return itemFromCArt.id === itemFromStore.id;
+    });
+    total += foundItem.price * itemFromCArt.amount;
+    console.log(total);
+  }
+
+  totalEl.innerText = `£${total.toFixed(2)}`;
+}
+
 function renderCartItems() {
   cartListEl.innerHTML = "";
   for (const item of state.cart) {
     const cartItemEl = cartItem(item);
     cartListEl.append(cartItemEl);
   }
+  calculateTotal();
 }
 
 renderGroceries(state);
